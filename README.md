@@ -1,8 +1,8 @@
 Uso: 
 git clone https://github.com/pentestershell/genepay/ 
-cd genepay
-chmod +x GenePay
-python3 GenePay
+cd genepay | 
+chmod +x GenePay | 
+python3 GenePay | 
 Empezar a generar el payload deseado.
 
    ____________________________________________________________

